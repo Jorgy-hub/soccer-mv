@@ -1,0 +1,36 @@
+\section{MPU6050}
+
+EL MPU6050 es una unidad de medición inercial o IMU (Inertial Measurment Units) de 6 grados de libertad (DoF) pues combina un acelerómetro de 3 ejes y un giroscopio de 3 ejes. Este sensor es muy utilizado en navegación, goniometría, estabilización, etc.
+
+Los dispositivos MPU proporcionan la primera solución integrada de procesador de movimiento de 6 ejes en el mundo, eliminando la desalineación cruzada a nivel de paquete entre el giroscopio y el acelerómetro asociada con soluciones discretas. Estos dispositivos combinan un giroscopio de 3 ejes y un acelerómetro de 3 ejes en la misma oblea de silicio, junto con un Procesador de Movimiento Digital™ (DMP™) incorporado capaz de procesar algoritmos complejos de fusión de sensores de 9 ejes mediante el motor MotionFusion™ comprobado y patentado.
+
+Los algoritmos de fusión de movimiento de 9 ejes integrados en el MPU-6000 y el MPU-6050 acceden a magnetómetros externos u otros sensores a través de un bus I2C maestro auxiliar, lo que permite a los dispositivos recopilar un conjunto completo de datos del sensor sin intervención del procesador del sistema. Estos dispositivos se ofrecen en el mismo formato y disposición de pines de 4x4x0.9 mm QFN que la actual familia de giroscopios integrados de 3 ejes MPU-3000™, proporcionando una ruta de actualización sencilla y facilitando la colocación en placas de circuito ya limitadas en espacio.
+
+Para el seguimiento preciso de movimientos rápidos y lentos, el MPU-60X0 cuenta con un rango completo de giroscopio programable por el usuario de ±250, ±500, ±1000 y ±2000°/seg (dps). Además, las partes también tienen un rango completo de acelerómetro programable por el usuario de ±2g, ±4g, ±8g y ±16g.
+
+\subsection{Calibración del MPU6050}
+
+Para la calibración del MPU6050 y la determinación de offsets más óptimos para mejorar los resultados en cuanto al sensado de este dispositivo, es recomendable ejecutar un código necesario que procesa los datos de calibración desde el inicio específico de este dispositivo. Cada sensor cuenta con sus propios valores más óptimos, por lo que es conveniente ejecutar la calibración y determinar cuál será la mejor configuración para cada sensor y posición a utilizar. Esta calibración conlleva una mejora significativa en los resultados obtenidos por el sensor.
+
+\subsection{Angulo de Inclinación}
+El giroscopio MPU6050 tiene la capacidad de medir la velocidad angular o la velocidad de rotación a lo largo de sus tres ejes. La posición del MPU6050 al iniciar la ejecución del programa es el punto de inclinación cero. El ángulo de inclinación se mide con respecto a este punto. A medida que se utiliza el dispositivo, se puede observar que el ángulo tiende a aumentar o disminuir gradualmente, y no se mantiene constante. Esta variación se atribuye a la deriva inherente al giroscopio.
+
+Tenemos dos mediciones del ángulo provenientes de dos fuentes diferentes. La medición del acelerómetro se ve afectada por movimientos horizontales repentinos, mientras que la medición del giroscopio se aleja gradualmente del valor real. En otras palabras, la lectura del acelerómetro se ve afectada por señales de corta duración y la lectura del giroscopio por señales de larga duración. Estas lecturas son, de alguna manera, complementarias entre sí. Al combinarlas mediante un Filtro Complementario, obtenemos una medición estable y precisa del ángulo. El filtro complementario es esencialmente un filtro pasaaltos que actúa sobre el giroscopio y un filtro pasabajos que actúa sobre el acelerómetro para eliminar la deriva y el ruido de la medición.
+
+\begin{equation}
+    \theta = [ \alpha \times ( \theta_\mathrm{ant} + \theta_\mathrm{gyro} )] + [(1 - \alpha) \times \theta_\mathrm{acc}]
+\end{equation}
+
+A través de la siguiente ecuación, se logrará corregir o filtrar los errores de pérdida de valor a lo largo del tiempo. Para resolver esta ecuación de filtro, es necesario determinar todas las incógnitas, muchas de las cuales ya se han obtenido a partir del valor del MPU6050. Sin embargo, aún resta determinar el valor de $\alpha$, la cual se obtendrá de la siguiente manera:
+
+\begin{equation}
+    \alpha = \frac{\tau}{\tau + dt} + \frac{0.75}{0.75 + 0.005} = 0.9934
+\end{equation}
+
+Los coeficientes de filtro 0.9934 y 0.0066 corresponden a una constante de tiempo del filtro de 0.75 segundos. El filtro pasa bajos permite que cualquier señal con una duración mayor a esta pase a través de él, mientras que el filtro pasa altos permite que cualquier señal con una duración menor a esta también lo haga. La respuesta del filtro puede ajustarse seleccionando la constante de tiempo adecuada. Reducir la constante de tiempo permitirá que más aceleración horizontal pase a través del filtro.
+
+Finalmente, al reemplazar estas constantes de filtro en nuestra ecuación para encontrar el ángulo, obtenemos el siguiente resultado:
+
+\begin{equation}
+    \theta = [ 0.9934 \times ( \theta_\mathrm{ant} + \theta_\mathrm{gyro} )] + [0.0066 \times \theta_\mathrm{acc}]
+\end{equation}
